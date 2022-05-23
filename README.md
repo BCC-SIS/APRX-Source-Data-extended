@@ -1,9 +1,8 @@
 # APRX-Source-Data-extended
 
 Title:            APRX_Source_Data_extended_3_6_01.py
-Description:      This script is an extension of APRX_Source_Data_3_6_02.py
-                  and crawls a supplied directory and lists all the following
-                  information for any APRX in that directory:
+
+Description:      This script is an extension of APRX_Source_Data_3_6_02.py and crawls a supplied directory and lists all the following information for any APRX in that directory:
                   
                   - Project Name
                   - Project Path
@@ -13,6 +12,7 @@ Description:      This script is an extension of APRX_Source_Data_3_6_02.py
                   - has Labels
 
 Author:           Martin Best
+
 Date:             01st August 2020
 
 Required Modules: arcpy   Version 3.6(Installed with ArcGIS Pro)
