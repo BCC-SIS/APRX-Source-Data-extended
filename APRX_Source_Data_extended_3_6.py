@@ -21,8 +21,15 @@
 # Amendments:       3.6.01  Extended original APRX_Source_Data_3_6_02.py script
 #                           - added code to determine if layer has labels defined
 #                           (Pete Smyth - 24th May 2022 08:23)
+#
+#                   3.6.02  Added code to exclude specific subdirectories
+#                           (e.g. archive, .backups and .gdb) which either contain
+#                           backed up or archive copies of aprx files wich we do not
+#                           want to include in the scan or is a Geodatabase file.
+#                           (Pete Smyth - 17th August 2022 10:44)
 #                           
 ################################################################################
+
 print("Beginning Process")
 import arcpy, os, csv
 from time import strftime, localtime
@@ -36,26 +43,30 @@ def main(folder, outputfile):
         w.writerows(rows)
 
 def crawlaprx(folder):
+    excludesubfolders = (".backups","archive",".gdb")
     for root, dirs, files in os.walk(folder):
         for f in files:
-            if f.lower().endswith(".aprx"):
-                aprxName = os.path.splitext(f)[0]
-                aprxPath = os.path.join(root, f)
-                aprx = arcpy.mp.ArcGISProject (aprxPath)                
-                for m in aprx.listMaps():
-                    for lyr in m.listLayers():
-                        lyrName = lyr.name
-                        lyrDatasource = lyr.dataSource.split(',')[-1] if lyr.supports("dataSource") else "N/A"
-                        mapName = m.name
-                        hasLabels = lyr.showLabels if lyr.supports("SHOWLABELS") else "FALSE"
-                        seq = (aprxName, aprxPath, mapName, lyrName, lyrDatasource, hasLabels);
-                        yield seq
-                del aprx
-                print(f"Finished processing {f}")
+            # ensures specified subfolders are omitted from scan
+            if not root.lower().endswith(excludesubfolders):
+                if f.lower().endswith(".aprx"):
+                    aprxName = os.path.splitext(f)[0]
+                    aprxPath = os.path.join(root, f)
+                    aprx = arcpy.mp.ArcGISProject (aprxPath)                
+                    for m in aprx.listMaps():
+                        for lyr in m.listLayers():
+                            lyrName = lyr.name
+                            lyrDatasource = lyr.dataSource.split(',')[-1] if lyr.supports("dataSource") else "N/A"
+                            mapName = m.name
+                            hasLabels = lyr.showLabels if lyr.supports("SHOWLABELS") else "FALSE"
+                            seq = (aprxName, aprxPath, mapName, lyrName, lyrDatasource, hasLabels);
+                            yield seq
+                    del aprx
+                    print(f"  Finished processing {f}")
+    print("Finished Process")
 
 if __name__ == "__main__":
+    #folderPath = r"D:\Data\BCC\Tools\python\source\DynamicServiceInfo" # or arcpy.GetParameterAsText(0)
     folderPath = r"D:\Data\BCC\Tools\python\source\DynamicServiceInfo" # or arcpy.GetParameterAsText(0)
-    #folderPath = r"D:\Data\BCC\Tools\python\source\for_SEPModelling" # or arcpy.GetParameterAsText(0)
     #output = r"C:\Temp\Test_MXDs_for_Change\aprx_DataSource.csv" # or arcpy.GetParameterAsText(1)
     output = r"D:\Data\BCC\Tools\python\results\aprx_DataSource_dyn" + str(strftime("%Y%m%d_%H%M%S")) + ".csv" # or arcpy.GetParameterAsText(1)
     main(folderPath, output)
